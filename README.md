@@ -1,6 +1,6 @@
 # MilkerTools
 
-## <em>Tools for milking from the teets of the interwebs</em>
+## <em>Tools for milking the teets of the interwebs</em>
 
 MilkerTools is a suite of things and bobbers I am developing with a childish notion of the process below being true:
 
