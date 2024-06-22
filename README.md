@@ -18,6 +18,7 @@ I've chosen Bitstamp as the exchange to use because it was the first one I found
 - [x] Rudimentary Bitstamp API wrapper class
 - [x] Relevant models corresponding with the Bitstamp API
 - [x] Methods for logging market data to InfluxDB
+- [ ] Logger service
 - [ ] Foundations for the trading bot: A console app
 - [ ] Slap some TSF model on the bot
 - [ ] Writing some tests for testing how well the bot forecasts
