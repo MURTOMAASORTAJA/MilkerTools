@@ -2,6 +2,8 @@
 
 ## <em>Tools for milking the teets of the interwebs</em>
 
+#### Introduction
+
 MilkerTools is a suite of things I am developing with a childish and delusional notion, that the following process will happen:
 
 1. Create a crypto trading bot
