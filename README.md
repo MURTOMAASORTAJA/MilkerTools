@@ -19,6 +19,7 @@ I've chosen Bitstamp as the exchange to use because it was the first one I found
 - [ ] Foundations for the trading bot: A console app
 - [ ] Slap some TSF model on the bot
 - [ ] Writing some tests for testing how well the bot forecasts
+- [ ] Do some adjustments and testing until it forecasts well enough
 - [ ] ???
 - [ ] Throw some money on it and see what happens
 
