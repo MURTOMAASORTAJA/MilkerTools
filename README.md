@@ -4,7 +4,7 @@
 
 #### Introduction
 
-MilkerTools is a suite of things I am developing with a childish and delusional notion, that the following process will happen:
+MilkerTools is a suite of things I am developing with a delusional and childish notion, that the following process will happen:
 
 1. Create a crypto trading bot
 2. Slap some forecasting model on it
