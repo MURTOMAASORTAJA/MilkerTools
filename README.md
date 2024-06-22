@@ -2,7 +2,7 @@
 
 ## <em>Tools for milking the teets of the interwebs</em>
 
-MilkerTools is a suite of things and bobbers I am developing with a childish notion of the process below being true:
+MilkerTools is a suite of things and bobbers I am developing with a childish and delusional notion, that the following process will happen:
 
 1. Create a crypto trading bot
 2. Slap some forecasting model on it
