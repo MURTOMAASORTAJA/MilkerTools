@@ -1,8 +1,8 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
-using MilkerTools.Misc.NumericStringConversion;
+using MilkerTools.Bitstamp.Misc.NumericStringConversion;
 
-namespace MilkerTools.Models;
+namespace MilkerTools.Bitstamp.Models;
 
 public class OrderResponse
 {

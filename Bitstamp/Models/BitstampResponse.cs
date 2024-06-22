@@ -1,4 +1,4 @@
-﻿namespace MilkerTools.Models;
+﻿namespace MilkerTools.Bitstamp.Models;
 
 public class BitstampResponse<T> : BitstampResponse
 {

@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
-namespace MilkerTools.Models.Requests;
+namespace MilkerTools.Bitstamp.Models.Requests;
 
 /// <summary>
 /// https://www.bitstamp.net/api/#tag/Market-info/operation/GetOHLCData

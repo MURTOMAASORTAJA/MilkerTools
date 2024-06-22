@@ -1,4 +1,4 @@
-﻿namespace MilkerTools.Models;
+﻿namespace MilkerTools.Bitstamp.Models;
 // GET https://www.bitstamp.net/api/v2/trading-pairs-info/
 
 public class TradingPair

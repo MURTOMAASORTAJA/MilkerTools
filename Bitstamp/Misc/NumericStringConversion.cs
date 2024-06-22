@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-namespace MilkerTools.Misc.NumericStringConversion;
+namespace MilkerTools.Bitstamp.Misc.NumericStringConversion;
 public class StringToLongConverter : JsonConverter<long>
 {
     public override long Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)

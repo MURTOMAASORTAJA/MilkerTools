@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
-using MilkerTools.Misc.NumericStringConversion;
-namespace MilkerTools.Models;
+using MilkerTools.Bitstamp.Misc.NumericStringConversion;
+namespace MilkerTools.Bitstamp.Models;
 public class CurrencyBasicData
 {
     public string Name { get; set; }

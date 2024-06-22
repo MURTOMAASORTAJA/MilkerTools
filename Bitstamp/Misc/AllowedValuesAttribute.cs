@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
-namespace MilkerTools.Misc;
+namespace MilkerTools.Bitstamp.Misc;
 
 //public class AllowedValuesAttribute : ValidationAttribute
 //{

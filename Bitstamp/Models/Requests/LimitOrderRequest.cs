@@ -1,7 +1,7 @@
 ﻿using System.Text.Json.Serialization;
-using MilkerTools.Misc.NumericStringConversion;
+using MilkerTools.Bitstamp.Misc.NumericStringConversion;
 
-namespace MilkerTools.Models.Requests;
+namespace MilkerTools.Bitstamp.Models.Requests;
 
 public class LimitOrderRequest
 {

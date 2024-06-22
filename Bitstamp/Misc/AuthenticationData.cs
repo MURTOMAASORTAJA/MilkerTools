@@ -1,4 +1,4 @@
-﻿namespace MilkerTools.Misc;
+﻿namespace MilkerTools.Bitstamp.Misc;
 public class AuthenticationData
 {
 }

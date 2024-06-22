@@ -1,28 +1,22 @@
-﻿using MilkerTools.Bitstamp;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Net.Http.Headers;
-using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using System.Web;
-using MilkerTools;
-using MilkerTools.Misc;
-using MilkerTools.Models;
-using MilkerTools.Models.Requests;
+using MilkerTools.Bitstamp.Misc;
+using MilkerTools.Bitstamp.Models;
+using MilkerTools.Bitstamp.Models.Requests;
 
-namespace MilkerTools;
+namespace MilkerTools.Bitstamp;
 public partial class BitStamp
 {
     private ApiSettings Settings { get; set; }
     private HttpClient Client { get; set; }
     private JsonSerializerOptions ResponseJsonOptions { get; set; }
     private JsonSerializerOptions RequestJsonOptions { get; set; }
-    private long nonce;
-    private string payloadString;
+    private readonly long nonce;
 
     public BitStamp(ApiSettings settings)
     {
@@ -77,7 +71,7 @@ public partial class BitStamp
     /// If both start and end timestamps are posted, end timestamp 
     /// will be used.</param>
     /// <param name="excludeCurrentCandle">If set, results won't include current (open) candle.</param>
-    public async Task<BitstampResponse<OHLCData>> GetOhlcData(
+    public async Task<BitstampResponse<OhlcData>> GetOhlcData(
         string marketSymbol,
 
         // hours:                                  1     2      4      6     12     24      48
@@ -88,8 +82,8 @@ public partial class BitStamp
         [Range(1, 1000)]
         int limit,
 
-        int? start = null,
-        int? end = null,
+        long? start = null,
+        long? end = null,
         bool? excludeCurrentCandle = false)
     {
         var url = $"ohlc/{marketSymbol}/?step={step}&limit={limit}";
@@ -115,13 +109,13 @@ public partial class BitStamp
             {
                 throw new JsonException();
             }
-            var ohlcData = Deserialize<OHLCData>(dataNode, ResponseJsonOptions);
+            var ohlcData = Deserialize<OhlcData>(dataNode, ResponseJsonOptions);
             return ohlcData!;
         }
         catch (JsonException)
         {
             var error = JsonSerializer.Deserialize<BitstampError>(content);
-            return new BitstampErrorResponse<OHLCData>(error!);
+            return new BitstampErrorResponse<OhlcData>(error!);
         }
     }
 

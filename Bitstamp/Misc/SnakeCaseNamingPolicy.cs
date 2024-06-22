@@ -1,5 +1,5 @@
 ﻿using System.Text.Json;
-namespace MilkerTools.Misc;
+namespace MilkerTools.Bitstamp.Misc;
 
 /// <summary>
 /// Policy to convert property names to snake_case.

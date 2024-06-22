@@ -1,5 +1,5 @@
 ﻿using System.Text.Json;
-namespace MilkerTools.Misc;
+namespace MilkerTools.Bitstamp.Misc;
 public class PascalCaseNamingPolicy : JsonNamingPolicy
 {
     public override string ConvertName(string name)

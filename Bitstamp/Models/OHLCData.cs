@@ -1,8 +1,8 @@
 ﻿using System.Text.Json.Serialization;
-using MilkerTools.Misc.NumericStringConversion;
+using MilkerTools.Bitstamp.Misc.NumericStringConversion;
 
-namespace MilkerTools.Models;
-public class OHLCData
+namespace MilkerTools.Bitstamp.Models;
+public class OhlcData
 {
     public required string Pair { get; set; }
     public required Ohlc[] Ohlc { get; set; }

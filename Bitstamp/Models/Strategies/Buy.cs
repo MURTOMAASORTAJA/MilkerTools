@@ -1,4 +1,4 @@
-﻿namespace MilkerTools.Models.Strategies;
+﻿namespace MilkerTools.Bitstamp.Models.Strategies;
 
 public class Buy
 {

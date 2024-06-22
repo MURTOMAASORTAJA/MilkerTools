@@ -1,4 +1,4 @@
-﻿namespace MilkerTools.Models.Strategies;
+﻿namespace MilkerTools.Bitstamp.Models.Strategies;
 
 internal class PumpProject
 {

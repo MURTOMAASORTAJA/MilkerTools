@@ -1,7 +1,7 @@
 ﻿using System.Text.Json.Serialization;
 using System.Text.Json;
 
-namespace MilkerTools.Models;
+namespace MilkerTools.Bitstamp.Models;
 
 public class BitstampError
 {
