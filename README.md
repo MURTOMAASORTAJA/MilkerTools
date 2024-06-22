@@ -1,8 +1,10 @@
-# MilkerTools
+# MilkerTools 🐄👷🥛
 
-## <em>Tools for milking from the teets of the interwebs</em>
+## <em>Tools for milking the teets of the interwebs</em>
 
-MilkerTools is a suite of things and bobbers that I've written with a childish notion of the process below being true:
+#### Introduction
+
+MilkerTools is a suite of things I am developing with a delusional and childish notion, that the following process will happen:
 
 1. Create a crypto trading bot
 2. Slap some forecasting model on it
@@ -19,6 +21,7 @@ I've chosen Bitstamp as the exchange to use because it was the first one I found
 - [ ] Foundations for the trading bot: A console app
 - [ ] Slap some TSF model on the bot
 - [ ] Writing some tests for testing how well the bot forecasts
+- [ ] Do some adjustments and testing until it forecasts well enough
 - [ ] ???
 - [ ] Throw some money on it and see what happens
 
