@@ -1,6 +1,5 @@
 ﻿using BitstampLogger;
 using InfluxDB.Client;
-using InfluxDB.Client.Api.Domain;
 using Microsoft.Extensions.Configuration;
 using MilkerTools.Bitstamp;
 using MilkerTools.Bitstamp.Models;
@@ -8,6 +7,11 @@ using MilkerTools.Bitstamp.Models;
 // get Settings from appsettings.json (and user secrets):
 
 var settings = GetSettings();
+if (settings == null)
+{
+    Console.WriteLine("I have no settings. You should configure some in appsettings.json. Bye.");
+    Environment.Exit(1);
+}
 var bitstamp = new BitStamp(settings.Api);
 var dbclient = new InfluxDBClient(GetClientOptions());
 

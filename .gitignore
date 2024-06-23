@@ -7,3 +7,7 @@
 /Bitstamp/obj
 /BitstampLogger/obj
 /BitstampLogger/bin/Debug/net8.0
+/BitstampLogger/bin/Release/net8.0
+/Bitstamp/bin/Release/net8.0
+/BitstampLogger/Properties/PublishProfiles
+/BitstampLogger/BitstampLogger.csproj.user
