@@ -18,6 +18,8 @@ I've chosen Bitstamp as the exchange to use because it was the first one I found
 #### Requirements:
 
 - .NET 8.0 SDK (`dotnet-sdk-8.0` in Ubuntu apt)
+- InfluxDB instance
+- BitStamp API key and secret
 
 #### How to install:
 
