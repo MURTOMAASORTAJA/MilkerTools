@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using MilkerTools.Bitstamp.Misc.NumericStringConversion;
 
 namespace MilkerTools.Bitstamp.Models;

@@ -8,6 +8,7 @@ public class Settings
     public TimeSpan MinimumHistoryDataSpan { get; set; } = TimeSpan.FromDays(60);
     public InfluxDbSettings InfluxDb { get; set; }
     public MarketSettings Market { get; set; } = new();
+    public AnalysisParameters Analysis { get; set; } = new();
 }
 
 public class InfluxDbSettings

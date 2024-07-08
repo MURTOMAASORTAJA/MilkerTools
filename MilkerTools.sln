@@ -5,7 +5,7 @@ VisualStudioVersion = 17.8.34316.72
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bitstamp", "Bitstamp\Bitstamp.csproj", "{A37C0C84-3619-454E-936E-222D9E11F60F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BitstampLogger", "BitstampLogger\BitstampLogger.csproj", "{9C569B0F-628A-4A58-9BE1-2045D61302F9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BitstampLogger", "BitstampLogger\BitstampLogger.csproj", "{9C569B0F-628A-4A58-9BE1-2045D61302F9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

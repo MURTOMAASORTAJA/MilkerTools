@@ -11,3 +11,6 @@
 /Bitstamp/bin/Release/net8.0
 /BitstampLogger/Properties/PublishProfiles
 /BitstampLogger/BitstampLogger.csproj.user
+/.idea/.idea.MilkerTools/.idea
+/.vscode
+/BitstampLogger/Properties
