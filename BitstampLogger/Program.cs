@@ -22,8 +22,11 @@ Task? historyWorkTask = null;
 var historyWorkDone = false;
 
 DateTime? lastOhlcDataFetch = null;
-await InitializeBucket();
-
+var toBeAnalyzed = await GetUnanalyzedDataTimestamps();
+if (toBeAnalyzed.Count > 0)
+{
+    toBeAnalyzed.ForEach(analysisQueue.Enqueue);
+}
 
 while (true)
 {
@@ -376,6 +379,12 @@ from(bucket: ""{settings.InfluxDb.Bucket}"")
     return timestamps;
 }
 
+async Task<List<DateTime>> GetUnanalyzedDataTimestamps()
+{
+    var ohlcStamps = await GetTimestamps("ohlc_data");
+    var analysisStamps = await GetTimestamps("analysis");
+    return analysisStamps.Where(stamp => !ohlcStamps.Contains(stamp)).ToList();
+}
 async Task AnalyzeOhlcItem(DateTime timestamp)
 {
     var earliestDateTimeOfRequiredHistoryData = timestamp - AnalysisHistoryBufferTimeSpan(false);
