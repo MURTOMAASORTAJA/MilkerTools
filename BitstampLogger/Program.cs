@@ -3,10 +3,9 @@ using InfluxDB.Client;
 using Microsoft.Extensions.Configuration;
 using MilkerTools.Bitstamp;
 using MilkerTools.Bitstamp.Models;
-using System.Security.Cryptography;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Globalization;
 
-// get Settings from appsettings.json (and user secrets):
+Queue<DateTime> analysisQueue = new();
 
 var settings = GetSettings();
 if (settings == null)
@@ -15,7 +14,6 @@ if (settings == null)
     Environment.Exit(1);
 }
 var bitstamp = new BitStamp(settings.Api);
-var dbclient = new InfluxDBClient(GetClientOptions());
 
 var dbHealthWait = TimeSpan.FromMinutes(5);
 DateTime? firstFailedHealthCheck = null;
@@ -23,9 +21,13 @@ DateTime? firstFailedHealthCheck = null;
 Task? historyWorkTask = null;
 var historyWorkDone = false;
 
+DateTime? lastOhlcDataFetch = null;
+await InitializeBucket();
+
+
 while (true)
 {
-    if (await dbclient.PingAsync())
+    if (await PingInfluxDb())
     {
         await DoWork();
     }
@@ -53,8 +55,7 @@ while (true)
             }
         }
     }
-    
-    Thread.Sleep(new TimeSpan(0, 0, settings.Market.Step/2));
+   
 }
 
 BitstampLogger.Settings GetSettings()
@@ -68,29 +69,58 @@ BitstampLogger.Settings GetSettings()
     return configuration.Get<BitstampLogger.Settings>()!;
 }
 
+async Task<bool> PingInfluxDb()
+{
+    var dbclient = new InfluxDBClient(GetClientOptions());
+    return await dbclient.PingAsync();
+}
+
+async Task InitializeBucket()
+{
+    var options = GetClientOptions();
+    using InfluxDBClient client = new(options);
+    var bucketApi = client.GetBucketsApi();
+    var orgId = (await client.GetOrganizationsApi().FindOrganizationsAsync(org: settings.InfluxDb.Org)).First().Id;
+
+    var existingBucket = await bucketApi.FindBucketByNameAsync(settings.InfluxDb.Bucket);
+    if (existingBucket != null)
+    {
+        await bucketApi.DeleteBucketAsync(existingBucket);
+    }
+
+    await bucketApi.CreateBucketAsync(settings.InfluxDb.Bucket, orgId);
+}
+
 async Task DoWork()
 {
     var historyItemsCount = await PopulateHistoryOhlcData();
-    Thread.Sleep(historyItemsCount);
+    if (historyItemsCount > 0) Thread.Sleep(CalculateWaitTime(historyItemsCount));
+
+    if (lastOhlcDataFetch == null || lastOhlcDataFetch != null && (DateTime.Now - lastOhlcDataFetch.Value).TotalSeconds > (settings!.Market.Step / 2))
+    {
+        await PopulateRecentOhlcData();
+        lastOhlcDataFetch = DateTime.Now;
+    }
+
     await AnalyzeData();
-    await PopulateRecentOhlcData();
 }
+
+int CalculateWaitTime(int ohlcCount) => Convert.ToInt16(Decimal.Round(ohlcCount * 0.15M));
 
 async Task<int> PopulateHistoryOhlcData()
 {
     var count = 0;
-    var earliestTimestamp = await GetEarliestTimestamp("ohlc_data", "pair", settings!.Market.Pair) ?? DateTime.Now;
-
     var endTime = DateTime.Now;
+    var earliestExistingTimestamp = await GetEarliestTimestamp("ohlc_data", "pair", settings!.Market.Pair) ?? endTime;
     var intendedEarliestTimestamp = endTime - (settings.MinimumHistoryDataSpan);
 
     var earliestOfTotal = DateTime.Now - (settings.MinimumHistoryDataSpan +
         GetTimespanOfPeriodValue(settings.Market.Step, Convert.ToInt16(settings.Analysis.GetLongestPeriod() + 5)));
 
-    if (earliestTimestamp > endTime.AddSeconds(settings.Market.Step))
+    if (earliestExistingTimestamp >= endTime)
     {
         await WriteLineAsync("Need to log some historical OHLC data.");
-        var requestRanges = GetRequestRanges(intendedEarliestTimestamp, earliestTimestamp, settings.Market.Step);
+        var requestRanges = GetRequestRanges(intendedEarliestTimestamp, earliestExistingTimestamp, settings.Market.Step);
 
         foreach (var (Start, End) in requestRanges)
         {
@@ -105,6 +135,14 @@ async Task<int> PopulateHistoryOhlcData()
 
             count += response?.Content?.Ohlc.Length ?? 0;
 
+            if (response!.Content?.Ohlc != null)
+            {
+                foreach (var item in response.Content.Ohlc)
+                {
+                    EnqueueIfNew(item.Timestamp.ToDateTime());
+                }
+            }
+
             PushOhlcDataToDb(response.Content!);
             await WriteLineAsync("Logged some OHLC data.");
         }
@@ -112,7 +150,15 @@ async Task<int> PopulateHistoryOhlcData()
         await WriteLineAsync("Historical OHLC data logging finished.");
     }
 
-    return count;
+     return count;
+}
+
+void EnqueueIfNew(DateTime item)
+{
+    if (!analysisQueue.Contains(item))
+    {
+        analysisQueue.Enqueue(item);
+    }
 }
 
 async Task<OhlcData> PopulateRecentOhlcData()
@@ -140,6 +186,10 @@ async Task<OhlcData> PopulateRecentOhlcData()
             }
             if (response.Content?.Ohlc != null)
             {
+                foreach (var item in response.Content.Ohlc)
+                {
+                    EnqueueIfNew(item.Timestamp.ToDateTime());
+                }
                 allOhlc.AddRange(response.Content.Ohlc);
             }
             PushOhlcDataToDb(response.Content!);
@@ -157,14 +207,13 @@ async Task<OhlcData> PopulateRecentOhlcData()
 
 async Task AnalyzeData()
 {
-    var unanalyzedTimestamps = await GetTimestampsOfUnanalyzedOhlcItems();
-    if (unanalyzedTimestamps.Count > 0)
+    if (!analysisQueue.TryDequeue(out var stamp))
     {
-        var timestamp = unanalyzedTimestamps.First();
-        await WriteLineAsync($"Analyzing OHLC item from {timestamp}");
-        await AnalyzeOhlcItem(timestamp);
-        await WriteLineAsync($"Analyzed.");
+        return;
     }
+
+    await AnalyzeOhlcItem(stamp);
+    await WriteLineAsync($"Analyzed OHLC item from {stamp} (total {analysisQueue.Count} left)");
 }
 
 static async Task<InfluxOhlcData> GetOhlcDataFromInfluxDb(InfluxDbSettings influxDbSettings, DateTime startTimestamp, DateTime endTimestamp)
@@ -172,18 +221,23 @@ static async Task<InfluxOhlcData> GetOhlcDataFromInfluxDb(InfluxDbSettings influ
     var client = new InfluxDBClient(influxDbSettings.Uri.AbsoluteUri, influxDbSettings.Token);
     var api = client.GetQueryApi();
 
+    var startTime = startTimestamp.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
+    var endTime = endTimestamp.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
+
     var flux = $@"
             from(bucket: ""{influxDbSettings.Bucket}"")
-            |> range(start: {startTimestamp:yyyy-MM-ddTHH:mm:ssZ}, stop: {endTimestamp:yyyy-MM-ddTHH:mm:ssZ})
+            |> range(start: {startTime}, stop: {endTime})
             |> filter(fn: (r) => r._measurement == ""ohlc_data"")
             |> pivot(rowKey: [""_time""], columnKey: [""_field""], valueColumn: ""_value"")
             |> keep(columns: [""_time"", ""open"", ""low"", ""high"", ""close"", ""volume""])
         ";
 
+    var ohlc = await api.QueryAsync<InfluxOhlc>(flux, influxDbSettings.Org);
+
     return new()
     {
         Pair = influxDbSettings.Bucket,
-        Ohlc = await api.QueryAsync<InfluxOhlc>(flux, influxDbSettings.Org)
+        Ohlc = ohlc
     };
 }
 
@@ -228,7 +282,7 @@ void PushAnalysisDataToDb(AnalysisData data)
 {
     using InfluxDBClient client = new(GetClientOptions());
     var pointData = data.ToPointData();
-    client.GetWriteApi().WritePoint(pointData);
+    client.GetWriteApi().WritePoint(pointData, settings.InfluxDb.Bucket, settings.InfluxDb.Org);
 }
 
 async Task<DateTime?> GetLatestTimestamp(string measurement, string tagKey, string tagValue)
@@ -294,79 +348,44 @@ async Task WriteAsync(string text, ConsoleColor? color)
     }
 }
 
-async Task<List<DateTime>> GetTimestampsOfUnanalyzedOhlcItems()
+async Task<List<DateTime>> GetTimestamps(string measurement)
 {
     var options = GetClientOptions();
     using InfluxDBClient client = new(options);
     string fluxQuery = $@"
-import ""array""
-import ""join""
-
-// Query OHLC data and add a dummy row if empty
-ohlc = from(bucket: ""{settings.InfluxDb.Bucket}"")
-  |> range(start: -1d)
-  |> filter(fn: (r) => r._measurement == ""ohlc_data"")
+from(bucket: ""{settings.InfluxDb.Bucket}"")
+  |> range(start: {AnalysisHistoryBufferTimeSpan(true).ToFluxRange()})
+  |> filter(fn: (r) => r._measurement == ""{measurement}"")
   |> keep(columns: [""_time""])
-
-dummy_ohlc = array.from(rows: [{{_time: time(v: 0)}}])
-ohlc_with_dummy = union(tables: [ohlc, dummy_ohlc])
-
-// Query analysis data and add a dummy row if empty
-analysis = from(bucket: ""{settings.InfluxDb.Bucket}"")
-  |> range(start: -1d)
-  |> filter(fn: (r) => r._measurement == ""analysis"")
-  |> keep(columns: [""_time""])
-
-dummy_analysis = array.from(rows: [{{_time: time(v: 0)}}])
-analysis_with_dummy = union(tables: [analysis, dummy_analysis])
-
-// Perform the left join
-joined = join.left(
-  left: ohlc_with_dummy,
-  right: analysis_with_dummy,
-  on: (l, r) => l._time == r._time,
-  as: (l, r) => ({{
-    l with
-    analysis_exists: exists r._time
-  }})
-)
-
-// Filter for OHLC entries without corresponding analysis and remove dummy rows
-result = joined
-  |> filter(fn: (r) => r._time != time(v: 0) and not r.analysis_exists)
-  |> keep(columns: [""_time""])
-
-result";
+";
     
-    var earliestAnalyzableTimestamp = await GetEarliestTimestamp("ohlc_data", "pair", settings!.Market.Pair);
-
-    if (earliestAnalyzableTimestamp == null)
-    {
-        return [];
-    }
-
     var queryApi = client.GetQueryApi();
     var tables = await queryApi.QueryAsync(fluxQuery, options.Org);
     var timestamps = tables
         .SelectMany(table => table.Records.Select(rec => rec.GetTimeInDateTime()!.Value))
-        .Where(stamp => stamp >= earliestAnalyzableTimestamp)
         .ToList();
 
     return timestamps;
 }
 
-
-
 async Task AnalyzeOhlcItem(DateTime timestamp)
 {
-    var earliestDateTimeOfRequiredHistoryData = timestamp - AnalysisHistoryBufferTimeSpan();
+    var earliestDateTimeOfRequiredHistoryData = timestamp - AnalysisHistoryBufferTimeSpan(false);
 
+    await WriteLineAsync($"Getting history for analysis.");
     var getHistoryData = await GetOhlcDataFromInfluxDb(settings.InfluxDb, earliestDateTimeOfRequiredHistoryData, timestamp);
-    var analysisData = Enrichment.AnalyzeLatestOhlc(getHistoryData, settings.Analysis);
+    if (getHistoryData.Ohlc == null || getHistoryData.Ohlc.Count < settings.Analysis.GetLongestPeriod())
+    {
+        await WriteLineAsync($"Not enough data for analysis. Skipping.");
+        return;
+    }
+
+    await WriteLineAsync($"Analyzing data for {timestamp}...");
+    var analysisData = Enrichment.AnalyzeLatestOhlc(getHistoryData, settings.Analysis, settings.Market.Pair, timestamp);
     PushAnalysisDataToDb(analysisData);
 }
 
-TimeSpan AnalysisHistoryBufferTimeSpan() => settings.MinimumHistoryDataSpan + GetTimespanOfPeriodValue(settings.Market.Step, Convert.ToInt16(settings.Analysis.GetLongestPeriod() + 5));
+TimeSpan AnalysisHistoryBufferTimeSpan(bool includeHistory = true) => (includeHistory ? settings.MinimumHistoryDataSpan : TimeSpan.Zero) + GetTimespanOfPeriodValue(settings.Market.Step, Convert.ToInt16(settings.Analysis.GetLongestPeriod() + 5));
 
 
 public record HistoryData(OhlcData Data, long StartTimestamp, long EndTimestamp);

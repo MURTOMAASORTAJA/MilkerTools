@@ -2,7 +2,7 @@
 
 public static class Enrichment
 {
-    public static AnalysisData AnalyzeLatestOhlc(InfluxOhlcData data, AnalysisParameters parameters)
+    public static AnalysisData AnalyzeLatestOhlc(InfluxOhlcData data, AnalysisParameters parameters, string pair, DateTime originalTimestamp)
     {
         var ohlcList = data.Ohlc;
 
@@ -20,7 +20,9 @@ public static class Enrichment
             Cci = TryCalculate(() => Analysis.CalculateCCI(ohlcList, parameters.CciPeriod)),
             IchimokuCloud = TryCalculate(() => Analysis.CalculateIchimokuCloud(ohlcList, parameters.IchimokuCloudTenkanPeriod, parameters.IchimokuCloudKijunPeriod, parameters.IchimokuCloudSenkouBPeriod)),
             ParabolicSar = TryCalculate(() => Analysis.CalculateParabolicSAR(ohlcList, parameters.ParabolicSarStep, parameters.ParabolicSarMaxStep)),
-            Bop = TryCalculate(() => Analysis.CalculateBOP(ohlcList))
+            Bop = TryCalculate(() => Analysis.CalculateBOP(ohlcList)),
+            Pair = pair,
+            Timestamp = originalTimestamp
         };
     }
 

@@ -54,4 +54,29 @@ public static class Extensions
             Pair = ohlcData.Pair
         };
     }
+
+    public static string ToFluxRange(this TimeSpan timeSpan)
+    {
+        if (timeSpan.TotalSeconds < 0)
+        {
+            throw new ArgumentException("TimeSpan cannot be negative.");
+        }
+
+        if (timeSpan.TotalDays >= 1)
+        {
+            return $"-{Math.Floor(timeSpan.TotalDays)}d{(timeSpan.Hours > 0 ? $" -{timeSpan.Hours}h" : "")}";
+        }
+        else if (timeSpan.TotalHours >= 1)
+        {
+            return $"-{Math.Floor(timeSpan.TotalHours)}h{(timeSpan.Minutes > 0 ? $" -{timeSpan.Minutes}m" : "")}";
+        }
+        else if (timeSpan.TotalMinutes >= 1)
+        {
+            return $"-{Math.Floor(timeSpan.TotalMinutes)}m{(timeSpan.Seconds > 0 ? $" -{timeSpan.Seconds}s" : "")}";
+        }
+        else
+        {
+            return $"-{Math.Floor(timeSpan.TotalSeconds)}s";
+        }
+    }
 }

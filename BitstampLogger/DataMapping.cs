@@ -1,5 +1,6 @@
 ﻿using InfluxDB.Client.Writes;
 using MilkerTools.Bitstamp.Models;
+using System.Drawing;
 namespace BitstampLogger;
 
 public static class DataMapping
@@ -20,7 +21,7 @@ public static class DataMapping
 
     public static PointData ToPointData(this AnalysisData analysisData)
     {
-        return 
+        var pointData =
             PointData
             .Measurement("analysis")
             .Tag("pair", analysisData.Pair)
@@ -29,11 +30,10 @@ public static class DataMapping
             .Field("rsi", analysisData.Rsi)
             .Field("bollinger_bands_lower", analysisData.BollingerBands.Lower)
             .Field("bollinger_bands_upper", analysisData.BollingerBands.Upper)
+            .Field("bollinger_bands_middle", analysisData.BollingerBands.Middle)
             .Field("macd", analysisData.Macd.Macd)
             .Field("macd_signal", analysisData.Macd.Signal)
             .Field("macd_histogram", analysisData.Macd.Histogram)
-            .Field("stochastic_oscillator_k", analysisData.StochasticOscillator.k)
-            .Field("stochastic_oscillator_d", analysisData.StochasticOscillator.d)
             .Field("obv", analysisData.Obv)
             .Field("cci", analysisData.Cci)
             .Field("ichimoku_cloud_tenkan_sen", analysisData.IchimokuCloud.TenkanSen)
@@ -43,7 +43,10 @@ public static class DataMapping
             .Field("ichimoku_cloud_chikou_span", analysisData.IchimokuCloud.ChikouSpan)
             .Field("parabolic_sar", analysisData.ParabolicSar)
             .Field("bop", analysisData.Bop)
+            .Field("stochastic_oscillator_k", analysisData.StochasticOscillator.k)
+            .Field("stochastic_oscillator_d", analysisData.StochasticOscillator.d)
             .Timestamp(analysisData.Timestamp, InfluxDB.Client.Api.Domain.WritePrecision.S);
 
+        return pointData;
     }
 }

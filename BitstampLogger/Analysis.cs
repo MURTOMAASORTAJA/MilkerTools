@@ -197,22 +197,22 @@ public class AnalysisData
 
 public class AnalysisParameters
 {
-    public int SmaPeriod { get; set; } = 20; // 20 minutes
-    public int EmaPeriod { get; set; } = 20; // 20 minutes
-    public int RsiPeriod { get; set; } = 14; // 14 minutes
-    public int BollingerBandsPeriod { get; set; } = 20; // 20 minutes
-    public decimal BollingerBandsMultiplier { get; set; } = 2m; // Standard multiplier
-    public int MacdShortPeriod { get; set; } = 12; // 12 minutes
-    public int MacdLongPeriod { get; set; } = 26; // 26 minutes
-    public int MacdSignalPeriod { get; set; } = 9; // 9 minutes
-    public int StochasticOscillatorPeriod { get; set; } = 14; // 14 minutes
-    public int ObvPeriod { get; set; } = 1; // OBV is typically calculated continuously
-    public int CciPeriod { get; set; } = 20; // 20 minutes
-    public int IchimokuCloudTenkanPeriod { get; set; } = 9; // 9 minutes
-    public int IchimokuCloudKijunPeriod { get; set; } = 26; // 26 minutes
-    public int IchimokuCloudSenkouBPeriod { get; set; } = 52; // 52 minutes
-    public decimal ParabolicSarStep { get; set; } = 0.02m; // Standard step value
-    public decimal ParabolicSarMaxStep { get; set; } = 0.2m; // Standard max step value
+    public int SmaPeriod { get; set; }
+    public int EmaPeriod { get; set; }
+    public int RsiPeriod { get; set; }
+    public int BollingerBandsPeriod { get; set; }
+    public decimal BollingerBandsMultiplier { get; set; }
+    public int MacdShortPeriod { get; set; }
+    public int MacdLongPeriod { get; set; }
+    public int MacdSignalPeriod { get; set; }
+    public int StochasticOscillatorPeriod { get; set; }
+    public int ObvPeriod { get; set; }
+    public int CciPeriod { get; set; }
+    public int IchimokuCloudTenkanPeriod { get; set; }
+    public int IchimokuCloudKijunPeriod { get; set; }
+    public int IchimokuCloudSenkouBPeriod { get; set; }
+    public decimal ParabolicSarStep { get; set; }
+    public decimal ParabolicSarMaxStep { get; set; }
 
     public decimal GetLongestPeriod()
     {
