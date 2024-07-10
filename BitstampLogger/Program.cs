@@ -183,12 +183,14 @@ async Task<OhlcData> PopulateRecentOhlcData()
     if (latestTimestamp <= DateTime.Now.AddSeconds(settings.Market.Step * -1))
     {
         await WriteLineAsync("Need to log some recent OHLC data.");
+        var wholeRangeAsSteps = Convert.ToInt16(Math.Round((DateTime.Now - latestTimestamp).TotalSeconds / settings.Market.Step,0) + 1); // +1 just in case
+
         var requestRanges = GetRequestRanges(latestTimestamp, DateTime.Now, settings.Market.Step);
         var requests = requestRanges
             .Select(async range =>
             {
                 await WriteLineAsync($"Requesting data from range {range.Start:dd.MM.yyyy HH:mm:ss} - {range.End:dd.MM.yyyy HH:mm:ss}");
-                return await bitstamp!.GetOhlcData(settings.Market.Pair, settings.Market.Step, 1000, range.Start.ToUnixTimestamp()/1000, range.End.ToUnixTimestamp()/1000, true);
+                return await bitstamp!.GetOhlcData(settings.Market.Pair, settings.Market.Step, wholeRangeAsSteps, range.Start.ToUnixTimestamp()/1000, range.End.ToUnixTimestamp()/1000, true);
             });
 
         var responses = await Task.WhenAll(requests);
