@@ -137,10 +137,7 @@ async Task<int> PopulateHistoryOhlcData()
 
             if (response!.Content?.Ohlc != null)
             {
-                foreach (var item in response.Content.Ohlc)
-                {
-                    EnqueueIfNew(item.Timestamp.ToDateTime());
-                }
+                EnqueueManyIfNew(response.Content.Ohlc.Select(ohlc => ohlc.Timestamp.ToDateTime()), false);
             }
 
             PushOhlcDataToDb(response.Content!);
@@ -153,11 +150,25 @@ async Task<int> PopulateHistoryOhlcData()
      return count;
 }
 
-void EnqueueIfNew(DateTime item)
+void EnqueueIfNew(DateTime item, bool recent, IEnumerable<DateTime>? existingTimestampsInDb)
 {
     if (!analysisQueue.Contains(item))
     {
+        if (recent)
+        {
+            var existingAnalysisItemTimestampsInDb = existingTimestampsInDb ?? GetTimestamps("analysis").Result;
+            if (existingAnalysisItemTimestampsInDb.Contains(item)) return;
+        }
         analysisQueue.Enqueue(item);
+    }
+}
+
+void EnqueueManyIfNew(IEnumerable<DateTime> items, bool recent)
+{
+    var existingStamps = GetTimestamps("analysis").Result;
+    foreach (var item in items)
+    {
+        EnqueueIfNew(item, recent, existingStamps);
     }
 }
 
@@ -186,10 +197,7 @@ async Task<OhlcData> PopulateRecentOhlcData()
             }
             if (response.Content?.Ohlc != null)
             {
-                foreach (var item in response.Content.Ohlc)
-                {
-                    EnqueueIfNew(item.Timestamp.ToDateTime());
-                }
+                EnqueueManyIfNew(response.Content.Ohlc.Select(ohlc => ohlc.Timestamp.ToDateTime()), false);
                 allOhlc.AddRange(response.Content.Ohlc);
             }
             PushOhlcDataToDb(response.Content!);
